@@ -1,12 +1,12 @@
 from vnpy.app.cta_strategy.backtesting import BacktestingEngine, OptimizationSetting
-from vnpy.app.cta_strategy.strategies.double_ma_strategy import (
-    DoubleMaStrategy,
+from vnpy.app.cta_strategy.strategies.m_strategy1 import (
+    MStragety1,
 )
 from datetime import datetime
 
 engine = BacktestingEngine()
 engine.set_parameters(
-    vt_symbol="IF88.CFFEX",
+    vt_symbol="CU88.SHFE",
     interval="1m",
     start=datetime(2019, 1, 1),
     end=datetime(2019, 4, 30),
@@ -17,7 +17,7 @@ engine.set_parameters(
     capital=1_000_000,
 )
 
-engine.add_strategy(DoubleMaStrategy, {})
+engine.add_strategy(MStragety1, {})
 
 engine.load_data()
 engine.run_backtesting()

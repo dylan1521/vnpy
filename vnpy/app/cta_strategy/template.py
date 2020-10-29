@@ -18,11 +18,11 @@ class CtaTemplate(ABC):
     variables = []
 
     def __init__(
-        self,
-        cta_engine: Any,
-        strategy_name: str,
-        vt_symbol: str,
-        setting: dict,
+            self,
+            cta_engine: Any,
+            strategy_name: str,
+            vt_symbol: str,
+            setting: dict,
     ):
         """"""
         self.cta_engine = cta_engine
@@ -172,14 +172,25 @@ class CtaTemplate(ABC):
         """
         return self.send_order(Direction.LONG, Offset.CLOSE, price, volume, stop, lock)
 
+    def cut(self, price: float, volume: float, stop: bool = False, lock: bool = False):
+        """
+        Send cut order to close a short position.
+        """
+        if self.pos > 0:
+            self.sell(price, 1)
+        elif self.pos < 0:
+            self.cover(price, 1)
+        else:
+            pass
+
     def send_order(
-        self,
-        direction: Direction,
-        offset: Offset,
-        price: float,
-        volume: float,
-        stop: bool = False,
-        lock: bool = False
+            self,
+            direction: Direction,
+            offset: Offset,
+            price: float,
+            volume: float,
+            stop: bool = False,
+            lock: bool = False
     ):
         """
         Send a new order.
@@ -225,11 +236,11 @@ class CtaTemplate(ABC):
         return self.cta_engine.get_pricetick(self)
 
     def load_bar(
-        self,
-        days: int,
-        interval: Interval = Interval.MINUTE,
-        callback: Callable = None,
-        use_database: bool = False
+            self,
+            days: int,
+            interval: Interval = Interval.MINUTE,
+            callback: Callable = None,
+            use_database: bool = False
     ):
         """
         Load historical bar data for initializing strategy.
