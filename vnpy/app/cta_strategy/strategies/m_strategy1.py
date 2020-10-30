@@ -9,6 +9,7 @@ from vnpy.app.cta_strategy import (
     ArrayManager,
 )
 from datetime import datetime as dt
+from loguru import logger
 
 
 class MStragety1(CtaTemplate):
@@ -85,6 +86,8 @@ class MStragety1(CtaTemplate):
             self.cut(bar.close_price, 1)
             self.put_event()
         elif trade_status == "hold":
+            if self.pos!=0:
+                logger.warning("夜盘持仓，仓位为{}".format(self.pos))
             self.cut(bar.close_price, 1)
             self.put_event()
         elif trade_status == "start":
