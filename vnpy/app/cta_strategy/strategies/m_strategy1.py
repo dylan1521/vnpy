@@ -23,7 +23,9 @@ class MStragety1(CtaTemplate):
 
     slow_ma0 = 0.0
     slow_ma1 = 0.0
-
+    count = 0
+    signal_count = 99999999
+    last_trade_price = 0
     parameters = ["fast_window", "slow_window"]
     variables = ["fast_ma0", "fast_ma1", "slow_ma0", "slow_ma1"]
 
@@ -76,6 +78,7 @@ class MStragety1(CtaTemplate):
         """
         Callback of new bar data update.
         """
+        self.count += 1
         am = self.am
         am.update_bar(bar)
         if not am.inited:
@@ -86,35 +89,47 @@ class MStragety1(CtaTemplate):
             self.cut(bar.close_price, 1)
             self.put_event()
         elif trade_status == "hold":
-            if self.pos!=0:
+            if self.pos != 0:
                 logger.warning("夜盘持仓，仓位为{}".format(self.pos))
-            self.cut(bar.close_price, 1)
+                self.cut(bar.close_price, 1)
             self.put_event()
         elif trade_status == "start":
-            fast_ma = am.sma(self.fast_window, array=True)
-            self.fast_ma0 = fast_ma[-1]
-            self.fast_ma1 = fast_ma[-2]
+            close = am.close
+            open = am.open
+            high = am.high
+            low = am.low
+            low_diff1 = low[-2] - low[-3]
+            low_diff2 = low[-2] - low[-1]
+            high_diff1 = high[-2] - high[-3]
+            high_diff2 = high[-2] - high[-1]
 
-            slow_ma = am.sma(self.slow_window, array=True)
-            self.slow_ma0 = slow_ma[-1]
-            self.slow_ma1 = slow_ma[-2]
+            ema_20 = am.ema(20, array=True)[-1]
 
-            cross_over = self.fast_ma0 > self.slow_ma0 and self.fast_ma1 < self.slow_ma1
-            cross_below = self.fast_ma0 < self.slow_ma0 and self.fast_ma1 > self.slow_ma1
+            long_signal = low_diff1 < 0 and low_diff2 < 0 and high_diff1 < 0 and high_diff2 < 0 and bar.close_price > ema_20
+            short_signal = low_diff1 > 0 and low_diff2 > 0 and high_diff1 > 0 and high_diff2 > 0 and bar.close_price < ema_20
 
-            if cross_over:
+            if long_signal:
+                self.signal_count = self.count
                 if self.pos == 0:
                     self.buy(bar.close_price, 1)
                 elif self.pos < 0:
-                    self.cover(bar.close_price, 1)
+                    self.cover(bar.close_price, self.pos)
                     self.buy(bar.close_price, 1)
-
-            elif cross_below:
+                self.last_trade_price = bar.close_price
+            elif short_signal:
+                self.signal_count = self.count
                 if self.pos == 0:
                     self.short(bar.close_price, 1)
                 elif self.pos > 0:
-                    self.sell(bar.close_price, 1)
+                    self.sell(bar.close_price, self.pos)
                     self.short(bar.close_price, 1)
+                self.last_trade_price = bar.close_price
+            else:
+                if self.pos > 0:
+                    # 2分钟未盈利，止损
+                    if self.count - self.signal_count >= 2:
+                        if bar.close_price <= self.last_trade_price:
+                            self.cut(bar.close_price, self.pos)
             self.put_event()
 
     def on_order(self, order: OrderData):
