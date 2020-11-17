@@ -177,9 +177,9 @@ class CtaTemplate(ABC):
         Send cut order to close a short position.
         """
         if self.pos > 0:
-            self.sell(price, 1)
+            self.sell(price, volume)
         elif self.pos < 0:
-            self.cover(price, 1)
+            self.cover(price, volume)
         else:
             pass
 
