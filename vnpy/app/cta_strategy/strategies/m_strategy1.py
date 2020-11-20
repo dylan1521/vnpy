@@ -10,6 +10,7 @@ from vnpy.app.cta_strategy import (
 )
 from datetime import datetime as dt
 from loguru import logger
+import numpy as np
 
 
 class MStragety1(CtaTemplate):
@@ -94,8 +95,6 @@ class MStragety1(CtaTemplate):
                 self.cut(bar.close_price, 1)
             self.put_event()
         elif trade_status == "start":
-            close = am.close
-            open = am.open
             high = am.high
             low = am.low
             low_diff1 = low[-2] - low[-3]
@@ -126,6 +125,11 @@ class MStragety1(CtaTemplate):
                 self.last_trade_price = bar.close_price
             else:
                 if self.pos > 0:
+                    ret = bar.close_price - self.last_trade_price
+                    if ret >= 10:
+                        self.cut(bar.close_price, self.pos)
+                    elif ret <= -5:
+                        self.cut(bar.close_price, self.pos)
                     # 2分钟未盈利，止损
                     if self.count - self.signal_count >= 2:
                         if bar.close_price <= self.last_trade_price:
