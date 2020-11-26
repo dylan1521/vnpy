@@ -16,7 +16,6 @@ import talib
 from .object import BarData, TickData
 from .constant import Exchange, Interval
 
-
 log_formatter = logging.Formatter('[%(asctime)s] %(message)s')
 
 
@@ -175,11 +174,11 @@ class BarGenerator:
     """
 
     def __init__(
-        self,
-        on_bar: Callable,
-        window: int = 0,
-        on_window_bar: Callable = None,
-        interval: Interval = Interval.MINUTE
+            self,
+            on_bar: Callable,
+            window: int = 0,
+            on_window_bar: Callable = None,
+            interval: Interval = Interval.MINUTE
     ):
         """Constructor"""
         self.bar: BarData = None
@@ -403,6 +402,33 @@ class ArrayManager(object):
         """
         return self.open_interest_array
 
+    def oc_mid_price(self) -> np.ndarray:
+        return (self.close + self.open) / 2
+
+    def hl_mid_price(self) -> np.ndarray:
+        return (self.high + self.low) / 2
+
+    def oc_delt(self) -> np.ndarray:
+        return (self.close - self.open)
+
+    def oc_delt_abs(self) -> np.ndarray:
+        return np.abs(self.close - self.open)
+
+    def oc_low(self):
+        return np.where(self.close > self.open, self.open, self.close)
+
+    def oc_high(self):
+        return np.where(self.close > self.open, self.close, self.open)
+
+    def hl_delt(self):
+        return self.high - self.low
+
+    def up_shadow(self):
+        return np.where(self.close > self.open, self.high - self.close, self.high - self.open)  # 上影线
+
+    def down_shadow(self):
+        return np.where(self.close > self.open, self.open - self.low, self.close - self.low)  # 下影线
+
     def sma(self, n: int, array: bool = False) -> Union[float, np.ndarray]:
         """
         Simple moving average.
@@ -575,11 +601,11 @@ class ArrayManager(object):
         return result[-1]
 
     def macd(
-        self,
-        fast_period: int,
-        slow_period: int,
-        signal_period: int,
-        array: bool = False
+            self,
+            fast_period: int,
+            slow_period: int,
+            signal_period: int,
+            array: bool = False
     ) -> Union[
         Tuple[np.ndarray, np.ndarray, np.ndarray],
         Tuple[float, float, float]
@@ -667,10 +693,10 @@ class ArrayManager(object):
         return result[-1]
 
     def boll(
-        self,
-        n: int,
-        dev: float,
-        array: bool = False
+            self,
+            n: int,
+            dev: float,
+            array: bool = False
     ) -> Union[
         Tuple[np.ndarray, np.ndarray],
         Tuple[float, float]
@@ -687,10 +713,10 @@ class ArrayManager(object):
         return up, down
 
     def keltner(
-        self,
-        n: int,
-        dev: float,
-        array: bool = False
+            self,
+            n: int,
+            dev: float,
+            array: bool = False
     ) -> Union[
         Tuple[np.ndarray, np.ndarray],
         Tuple[float, float]
@@ -707,7 +733,7 @@ class ArrayManager(object):
         return up, down
 
     def donchian(
-        self, n: int, array: bool = False
+            self, n: int, array: bool = False
     ) -> Union[
         Tuple[np.ndarray, np.ndarray],
         Tuple[float, float]
@@ -723,9 +749,9 @@ class ArrayManager(object):
         return up[-1], down[-1]
 
     def aroon(
-        self,
-        n: int,
-        array: bool = False
+            self,
+            n: int,
+            array: bool = False
     ) -> Union[
         Tuple[np.ndarray, np.ndarray],
         Tuple[float, float]
