@@ -86,15 +86,13 @@ class MStragety1(CtaTemplate):
             return
 
         trade_status = self.trade_status(bar)
-        if trade_status == "end":
-            self.cut(bar.close_price, 1)
-            self.put_event()
-        elif trade_status == "hold":
+        if trade_status == "end" and self.pos>0:
+            self.cut(bar.close_price, self.pos)
+        if trade_status == "hold":
             if self.pos != 0:
                 logger.warning("夜盘持仓，仓位为{}".format(self.pos))
-                self.cut(bar.close_price, 1)
-            self.put_event()
-        elif trade_status == "start":
+                self.cut(bar.close_price, self.pos)
+        if trade_status == "start":
             high = am.high
             low = am.low
             low_diff1 = low[-2] - low[-3]
@@ -134,7 +132,7 @@ class MStragety1(CtaTemplate):
                     if self.count - self.signal_count >= 2:
                         if bar.close_price <= self.last_trade_price:
                             self.cut(bar.close_price, self.pos)
-            self.put_event()
+        self.put_event()
 
     def on_order(self, order: OrderData):
         """
